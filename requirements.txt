@@ -1,0 +1,5 @@
+keyboard==0.13.5
+PyAudio==0.2.12
+PyQt5==5.14.2
+pygame==1.9.6
+audioop==1.2.2
