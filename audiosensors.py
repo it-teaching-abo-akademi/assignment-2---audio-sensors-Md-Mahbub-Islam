@@ -11,6 +11,12 @@ import audioop      # Getting volume from sound data
 # from scipy.fftpack import fft 
 # import wave
 
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
+
+
 # GUI dependencies
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget
 from PyQt5.QtGui import * 
@@ -91,7 +97,10 @@ def log_sound(index, label):
 def exitMethod():
     global quit_flag
     quit_flag = True
-    
+
+mean_buffer = []
+vari_buffer = []
+
 # This is the main thread, the code should be implemented here
 def mainThread(mean_label, var_label, faulty_label):
     
@@ -106,6 +115,11 @@ def mainThread(mean_label, var_label, faulty_label):
         
             # Check the exit condition and join the threads if it is met
             if keyboard.is_pressed('q') or quit_flag:
+                mean_df = pd.DataFrame(mean_buffer)
+                mean_df.to_csv("mean.csv")
+                var_df = pd.DataFrame(vari_buffer)
+                var_df.to_csv("var.csv")
+
                 for x in threads:
                     x.join()
                 p.terminate()
@@ -128,46 +142,28 @@ def mainThread(mean_label, var_label, faulty_label):
             #variance of the latest data which is current variance for the sensors
             var = np.var(latest_data).round(2)
 
-
+            # Update the labels
+            mean_label.setText(f"Mean : {mean}")
+            var_label.setText(f"Variance : {var}")
 
             # Limit buffers to the buffer_width
             for i in range(len(buffer)):
                 buffer[i] = buffer[i][-buffer_width:] # Limit the buffer to the last buffer_width entries
 
 
-
-
-            # Calculate the mean and variance of the buffers round to 2 decimals 100 buffer width
             means = [np.mean(x) for x in buffer[1:]]
             means = [round(x, 2) for x in means]
             vars = [np.var(x) for x in buffer[1:]]
             vars = [round(x, 2) for x in vars]
 
-            # Update the labels
-            mean_label.setText(f"Mean : {mean}")
-            var_label.setText(f"Variance : {var}")
-
-
-            # if len(buffer[0])> 100:
-            #     with open("data.txt", "w") as f:
-            #         f.write(str(buffer[0]) + "\n")
-            #
-            #     for x in threads:
-            #         x.join()
-            #     p.terminate()
-            #     break
+            #plot means and variances in graph using matplotlib
+            mean_buffer.append(means)
+            vari_buffer.append(vars)
 
 
 
 
 
-            faulty_devices = []
-            #detect if one or several sources are faulty
-            for i in range(len(means)):
-                if means[i] < 10:
-                    faulty_devices.append(i)
-
-            faulty_label.setText(f"Faulty devices: {faulty_devices}")
 
     print("Execution finished")
 
