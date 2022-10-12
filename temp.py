@@ -1,3 +1,4 @@
+
 import sys          # System manipulation
 import time         # Used to pause execution in threads as needed
 import keyboard     # Register keyboard events (keypresses)
@@ -10,12 +11,6 @@ import audioop      # Getting volume from sound data
 # For recording the sound into playable .wav files
 # from scipy.fftpack import fft 
 # import wave
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib import style
-
 
 # GUI dependencies
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget
@@ -73,7 +68,7 @@ def log_sound(index, label):
         
         # Append the necessary data to the buffer
         buffer[index].append(volume)
-        label.setText(str(index)+ ": " + str(volume))
+        label.setText(str(index)+ " : IMPLEMENT ME!" )
         
         # Check for quit command
         if keyboard.is_pressed('q') or quit_flag:
@@ -97,86 +92,39 @@ def log_sound(index, label):
 def exitMethod():
     global quit_flag
     quit_flag = True
-
-mean_buffer = []
-vari_buffer = []
-
+    
 # This is the main thread, the code should be implemented here
-def mainThread(mean_label, var_label, faulty_label):
+def mainThread(mean_label, var_label):
     
     # This is the buffer which includes data from all audio sources
     global buffer
     
     # the buffers sould only include the latest entries, this is the length of them
     # try finding a suitable value for it
-    buffer_width = 100
+    buffer_width = 10
     
     while True:
         
             # Check the exit condition and join the threads if it is met
             if keyboard.is_pressed('q') or quit_flag:
-                mean_df = pd.DataFrame(mean_buffer)
-                mean_df.to_csv("mean.csv")
-                var_df = pd.DataFrame(vari_buffer)
-                var_df.to_csv("var.csv")
-
                 for x in threads:
                     x.join()
                 p.terminate()
                 break
                 
             #time.sleep(0.01) # Pause the updates
-
-
-            #Get the latest volume data from the buffer
-            latest_data = []
-            for x in buffer:
-                latest_data.append(x[-1])
-
-            print(f"Devices: {len(buffer)}")
-
-            #ignore first sensor
-            latest_data = latest_data[1:]
-
-            #mean of the latest data which is current mean for the sensors
-            mean = np.mean(latest_data).round(2)
-
-            #variance of the latest data which is current variance for the sensors
-            var = np.var(latest_data).round(2)
-
-            # Update the labels
-            mean_label.setText(f"Mean : {mean}")
-            var_label.setText(f"Variance : {var}")
-
+            
             # Limit buffers to the buffer_width
             for i in range(len(buffer)):
-                buffer[i] = buffer[i][-buffer_width:] # Limit the buffer to the last buffer_width entries
+                buffer[i] = buffer[i][-buffer_width:]  
 
-            # Append the mean and variance to the buffers
-            means = [np.mean(x) for x in buffer[1:]]
-            means = [round(x, 2) for x in means]
-            vars = [np.var(x) for x in buffer[1:]]
-            vars = [round(x, 2) for x in vars]
+#########################################################################
+#################### TODO: Implement your code there ####################
+            
+            # The method has been given a set of labels where you may put the desired text
+            # Use 'label.setText(string)' to display text
 
-            #plot means and variances in graph using matplotlib
-            mean_buffer.append(means)
-            vari_buffer.append(vars)
-
-            # find faulty devices
-            faulty = []
-            #find max of means
-            max_mean = max(means)
-            th = 100
-            if max_mean > th+100:
-
-                for i in range(len(means)):
-                    if means[i] < th:
-                        faulty.append(i+1)
-
-            faulty_label.setText(f"Faulty devices : {faulty}")
-
-
-
+            
 
     print("Execution finished")
 
@@ -222,24 +170,16 @@ for i in range(0, numdevices):
         threads[i].start()
 
 # Init. labels for combined data        
-mean = QLabel("Mean: NO DATA YET", parent = window)
+mean = QLabel("Mean: IMPLEMENT ME!", parent = window)
 mean.move(60, (15 * numdevices + (10 * numdevices)))
 mean.setFont(QFont('Arial', 12))
-mean.setFixedWidth(400)
 
-variance = QLabel("Variance: NO DATA YET", parent = window)
+variance = QLabel("Variance: IMPLEMENT ME!", parent = window)
 variance.move(60, (15 * numdevices + (13 * (numdevices + 2))))
 variance.setFont(QFont('Arial', 12))
-variance.setFixedWidth(400)
-
-#show list of faulty sources
-faulty = QLabel("Faulty sources: NO DATA YET", parent = window)
-faulty.move(60, (15 * numdevices + (16 * (numdevices + 2))))
-faulty.setFont(QFont('Arial', 12))
-
 
 # Start the main thread
-main_thread = threading.Thread(target = mainThread, args=[mean, variance, faulty])
+main_thread = threading.Thread(target = mainThread, args=[mean, variance])
 main_thread.start()
 
 # Show window
